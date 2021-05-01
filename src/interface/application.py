@@ -11,7 +11,8 @@ class Application(tk.Tk):
         self.resizable(False, False)
 
         self._frame = None
-        self.switch_frame('MainScreen', 'teste')
+        self.switch_frame('InitialScreen')
+        #self.switch_frame('MainScreen', 'teste')
 
     def switch_frame(self, frame_class, *args):
         """Destroys current frame and replaces it with a new one."""

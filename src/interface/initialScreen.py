@@ -25,12 +25,14 @@ class InitialScreen(tk.Frame):
         self.connect_button.config(text="Conectar", font=("Arial", "10"), width=10)
         self.connect_button.pack()
 
-        self.user = User("")
+        self.user = None
 
     def __connectUser(self, master):
         username = self.username_entry.get()
 
         #valida nome (apenas caracteres e numeros)
+
+        self.user = User(username)
 
         if self.user.connect(username):
             self.user.getActiveUsers()

@@ -1,10 +1,11 @@
 import tkinter as tk
 
 class Chat(tk.Frame):
-    def __init__(self, master, user, userId, active=True, chatHistory=[]):
+    def __init__(self, master, user, userId, userName, active=True, chatHistory=[]):
         tk.Frame.__init__(self, master)
         self._userActive = active
         self._userId = userId
+        self._userName = userName
         self._chat_history = chatHistory
         
         self._user = user
@@ -22,6 +23,7 @@ class Chat(tk.Frame):
         for msg in self._chat_history:
             msg_label = tk.Label(chat_history_container, text=msg[1], font=("Arial", "10"))
 
+            text_justify = 'e'
             if msg[0] == self._userId:
                 text_justify = 'w'
                 msg_label.config(bg='green')
@@ -41,23 +43,26 @@ class Chat(tk.Frame):
         send_button.config(text="Enviar", font=("Arial", "7"), width=5, height=2)
         send_button.pack(side="right")
 
-        message_entry.pack(side="right", padx=10, fill="x")
+        message_entry.pack(side="right", padx=10, expand=1, fill="x")
 
         return message_container
 
     def __send_message(self, msg_entry):
         #envia msg ao outro user
-        msg = msg_entry.get()
+        msg = msg_entry.get()  
+        msg_max_width = self._chat_history_container.winfo_width()
 
-        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"))
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), wraplength=msg_max_width)
         msg_label.pack(pady=5, anchor='e')
 
         self._chat_history.append((self._userId, msg))
 
-        print(self._userId, msg)
+        msg_entry.delete(0, 'end')
 
     def add_user_msg(self, userId, msg):
-        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='green')
+        msg_max_width = self._chat_history_container.winfo_width()
+
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='green', wraplength=msg_max_width)
         msg_label.pack(pady=5, anchor='w')
 
         self._chat_history.append((userId, msg))
