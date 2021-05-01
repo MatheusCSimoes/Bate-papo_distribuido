@@ -1,77 +1,65 @@
 import tkinter as tk
 
 class Chat(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master, user, userId, active=True, chatHistory=[]):
         tk.Frame.__init__(self, master)
+        self._userActive = active
+        self._userId = userId
+        self._chat_history = chatHistory
+        
+        self._user = user
 
-        self.chat_container = tk.Frame(self, bg="#fff")
-        self.chat_container.pack(expand=1, fill="both")
+        self._chat_container = tk.Frame(self, bg="#fff")
+        self._chat_container.pack(expand=1, fill='both')
 
-        self.menu = _create_menu(self.chat_container) #inicia com status desconectado
-        self.user_chat = _create_user_chat_container(self.chat_container)
+        self._chat_history_container = self.__create_chat_history(self._chat_container)
+        self._msg_box_container = self.__create_msg_box(self._chat_container)
 
-def _create_menu(parent):
-    menu_container = tk.Frame(parent)
-    menu_container.config(background="#b3b3b3")
-    menu_container.pack(side="left", fill="y")
+    def __create_chat_history(self, parent):
+        chat_history_container = tk.Frame(parent, bg='#fff')
+        chat_history_container.pack(side="top", fill="x", pady=10, padx=15)
 
-    _create_status_menu(menu_container, 0)
-    _create_users_list_container(menu_container, [])
+        for msg in self._chat_history:
+            msg_label = tk.Label(chat_history_container, text=msg[1], font=("Arial", "10"))
 
-    return menu_container
+            if msg[0] == self._userId:
+                text_justify = 'w'
+                msg_label.config(bg='green')
+            
+            msg_label.pack(pady=5, anchor=text_justify)
 
-def _create_status_menu(parent, currentStatus):
-    status_menu_container = tk.Frame(parent)
-    status_menu_container.pack(side="top")
+        return chat_history_container
 
-    connect_container = tk.Frame(status_menu_container)
-    connect_container.pack(padx=10, pady=10, side="left")
+    def __create_msg_box(self, parent):
+        message_container = tk.Frame(parent)
+        message_container.pack(side="bottom", fill="x", pady=10, padx=10)
 
-    connect = tk.Button(connect_container)
-    #connect["command"] = #enviar msg ao servidor com status ativo
-    connect.config(text="Conectar", font=("Arial", "10"), width=10)
-    connect.pack()
+        message_entry = tk.Entry(message_container)
+        message_entry.config(font=("Arial", "8"))
+        
+        send_button = tk.Button(message_container, command=lambda: self.__send_message(message_entry))
+        send_button.config(text="Enviar", font=("Arial", "7"), width=5, height=2)
+        send_button.pack(side="right")
 
-    disconnect_container = tk.Frame(status_menu_container)
-    disconnect_container.pack(padx=10, pady=10, side="left")
+        message_entry.pack(side="right", padx=10, fill="x")
 
-    disconnect = tk.Button(disconnect_container)
-    #disconnect["command"] = #enviar msg ao servidor com status desativo
-    disconnect.config(text="Desconectar", font=("Arial", "10"), width=10)
-    disconnect.pack()
+        return message_container
 
-    return status_menu_container
+    def __send_message(self, msg_entry):
+        #envia msg ao outro user
+        msg = msg_entry.get()
 
-def _create_users_list_container(parent, usersList):
-    users_container = tk.Frame(parent)
-    users_container.pack(side="bottom")
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"))
+        msg_label.pack(pady=5, anchor='e')
 
-    return users_container
+        self._chat_history.append((self._userId, msg))
 
-def _create_user_chat_container(parent):
-    message_container = tk.Frame(parent)
-    message_container.pack(side="bottom", fill="x", pady=10, padx=10)
+        print(self._userId, msg)
 
-    message_entry = tk.Entry(message_container)
-    message_entry.config(font=("Arial", "8"))
-    
-    send_button = tk.Button(message_container, command=lambda: send_message(message_entry))
-    send_button.config(text="Enviar", font=("Arial", "7"), width=5, height=2)
-    send_button.pack(side="right")
+    def add_user_msg(self, userId, msg):
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='green')
+        msg_label.pack(pady=5, anchor='w')
 
-    message_entry.pack(side="right", padx=10, fill="x")
+        self._chat_history.append((userId, msg))
 
-    return message_container
-
-def send_message(msg_entry):
-    print(msg_entry.get())
-
-def create_new_user(parent, username, status):
-    user_container = tk.Frame(parent)
-    user_container.pack()
-
-    user_name = tk.Label(user_container, text=username)
-    user_name["font"] = ("Arial", "10")
-    user_name.pack()
-
-    return user_container    
+        print(userId, msg)

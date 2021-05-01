@@ -1,7 +1,7 @@
 import tkinter as tk
-from interface.chat import Chat
+from user import User
 
-class LogIn(tk.Frame):
+class InitialScreen(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
         
@@ -25,13 +25,14 @@ class LogIn(tk.Frame):
         self.connect_button.config(text="Conectar", font=("Arial", "10"), width=10)
         self.connect_button.pack()
 
+        self.user = User("")
+
     def __connectUser(self, master):
         username = self.username_entry.get()
 
-        #valida nome
-        #pega lista do servidor
-        #verifica se já existe o nome no servidor
-        #envia msg ao servidor
+        #valida nome (apenas caracteres e numeros)
 
-        print(username)
-        master.switch_frame(Chat)
+        if self.user.connect(username):
+            self.user.getActiveUsers()
+
+        master.switch_frame('MainScreen', self.user)
