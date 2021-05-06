@@ -52,14 +52,17 @@ class Chat(tk.Frame):
         msg = msg_entry.get()  
         msg_max_width = self._chat_history_container.winfo_width()
 
-        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), wraplength=msg_max_width)
-        msg_label.pack(pady=5, anchor='e')
-
-        self._chat_history.append((self._userId, msg))
-
-        msg_entry.delete(0, 'end')
+        if self._user.sendMsgToUser(self._userId, msg):
+            msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), wraplength=msg_max_width)
+            msg_label.pack(pady=5, anchor='e')
+            self._chat_history.append((self._userId, msg))
+        
+            msg_entry.delete(0, 'end')
+        else:
+            print('erro ao enviar msg')
 
     def add_user_msg(self, userId, msg):
+        print("Chat -> add_user_msg")
         msg_max_width = self._chat_history_container.winfo_width()
 
         msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='green', wraplength=msg_max_width)

@@ -26,9 +26,11 @@ class MainScreen(tk.Frame):
         self._current_chat.config(bg="#fff")
         self._current_chat.pack(expand=1, fill="both")
 
+        self._user.chatAddUserMsg = self._current_chat.add_user_msg
+
     def __disconnectUser(self):
         #enviar msg ao servidor com status desativo
-
+        self._user.disconnect()
         self._master.switch_frame('InitialScreen')
 
     def __create_menu(self, parent):
@@ -77,7 +79,7 @@ class MainScreen(tk.Frame):
 
         return users_container
 
-    def __create_new_user(self, parent, username, status):
+    def create_new_user(self, parent, username, status):
         user_container = tk.Frame(parent)
         user_container.pack()
 
