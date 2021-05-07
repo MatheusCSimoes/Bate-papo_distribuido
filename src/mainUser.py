@@ -4,7 +4,6 @@ from interface.application import Application
 app = None
 
 def on_closing():
-    print("ON_CLOSING")
     app.close_window()
     app.destroy()
 

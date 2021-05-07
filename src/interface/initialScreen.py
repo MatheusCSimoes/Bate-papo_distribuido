@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from user import User
 
 class InitialScreen(tk.Frame):
@@ -30,10 +31,15 @@ class InitialScreen(tk.Frame):
     def _connectUser(self, master):
         username = self.username_entry.get()
 
-        #valida nome (apenas caracteres e numeros)
+        if len(username) < 3:
+            messagebox.showinfo(title='Ajuste nome', message='O nome deve ter pelo menos 3 caracteres.')
+            return
 
         self.user = User(username)
 
         if self.user.connect(username):
             self.user.getActiveUsers()
             master.switch_frame('MainScreen', self.user)
+        else:
+            messagebox.showerror(title='Erro cadastro', message='Não foi possível cadastrar seu usuário. Provavelmente esse nome já está sendo utilizado.')
+            

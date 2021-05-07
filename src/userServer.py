@@ -13,9 +13,7 @@ class UserServer(rpyc.Service):
         print("Conexao encerrada.")
 
     def exposed_receive_msg(self, clientUserId, msg):
-        print('exposed_receive_msg:', clientUserId, msg)
         return self.callback_addUserMsg(clientUserId, msg)
 
     def exposed_update_user_list(self, userList):
-        print('UserServer - userList:', userList)
         return self.callback_updateUsersList(userList)

@@ -1,6 +1,7 @@
 import json
 import rpyc
 import threading
+from tkinter import messagebox
 from rpyc.utils.server import ThreadedServer
 from userServer import UserServer
 
@@ -26,33 +27,37 @@ class User:
         #envia msg ao servidor para conectar
         #caso o username já exista, vai retornar erro
         #se nao user conectado e atualiza os dados
-
         self._server_thread = threading.Thread(target=create_server, args=(self.id, self.addUserMsg, self.updateActiveUsers))
         self._server_thread.start()
 
-        central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        self.id = central_server.root.exposed_connect_user(username, ('', user_server_port))
-        central_server.close()
+        try:
+            central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+            self.id = central_server.root.exposed_connect_user(username, ('', user_server_port))
+            central_server.close()
+        except:
+            messagebox.showerror(title='Erro servidor', message='Não foi possível conectar ao servidor.')
+            stop_server()
+            return False
         
         if self.id == -1:
             print('ERRO!')
             stop_server()
             return False
         
-        if username is None:
-            username = self.username
-        else:
-            self.username = username
-
+        self.username = username
         return True #retorna True se conectado e False se não conectou
 
     def disconnect(self):
         if self._server_thread is None: #or self.id == -1:
             return True
         
-        central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        disconnected = central_server.root.exposed_disconnect_user(self.id)
-        central_server.close()
+        disconnect = False
+        try:
+            central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+            disconnected = central_server.root.exposed_disconnect_user(self.id)
+            central_server.close()
+        except:
+            messagebox.showerror(title='Erro servidor', message='Não foi possível enviar mensagem ao servidor.')
 
         if not disconnected:
             return False
@@ -65,16 +70,14 @@ class User:
         #pega a msg recebido do sevidor com o dicionario de usuarios ativos
         #se o usuario não está no dicionario do servidor, coloca seu status como inativo
         #se o usuario não está no dicionario de users, cria um novo user
-        print('INSIDE getActiveUsers')
+        try:
+            central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+            activeUsers = central_server.root.exposed_get_users_list()
+            central_server.close()
+        except:
+            messagebox.showerror(title='Erro servidor', message='Não foi possível enviar mensagem ao servidor.')
 
-        central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        activeUsers = central_server.root.exposed_get_users_list()
-        central_server.close()
-
-        print('self.usersList:', self.usersList)
-        print('activeUsers:', activeUsers)
         #activeUsers = dict({"1": '{ "name":"User1", "address":["",10001]}', "2": '{ "name":"User2", "address":["",10002]}'})
-
         activeUsers = dict(json.loads(activeUsers))
         for userId, userInfo in activeUsers.items():
             if userId in self.usersList:
@@ -89,15 +92,14 @@ class User:
         return activeUsers
 
     def updateActiveUsers(self, activeUsers=None):
-        print('INSIDE updateActiveUsers')
-
         if activeUsers is None:
-            print('activeUsers is None')
-            central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-            activeUsers = central_server.root.exposed_get_users_list()
-            central_server.close()
-
-        print(activeUsers)
+            try:
+                central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+                activeUsers = central_server.root.exposed_get_users_list()
+                central_server.close()
+            except:
+                messagebox.showerror(title='Erro servidor', message='Não foi possível enviar mensagem ao servidor.')
+                return
 
         activeUsers = dict(json.loads(activeUsers))
         for userId, userInfo in activeUsers.items():
@@ -117,21 +119,22 @@ class User:
                 if self.mainScreenDisableUser is not None:
                     self.mainScreenDisableUser(userId)
 
-        return activeUsers
+        return
 
     def sendMsgToUser(self, userId, msg):
         userAddress = self.usersList[userId].address
         
-        print('User server address:', userAddress[0], userAddress[1])
-        user_server_conn = rpyc.connect(userAddress[0], userAddress[1])
-        user_server_conn.root.exposed_receive_msg(self.id, msg)
-        user_server_conn.close()
+        try:
+            user_server_conn = rpyc.connect(userAddress[0], userAddress[1])
+            user_server_conn.root.exposed_receive_msg(self.id, msg)
+            user_server_conn.close()
+        except:
+            messagebox.showerror(title='Erro usuário', message='Não foi possível enviar mensagem ao usuário.')
+            return False
         
         return True
 
     def addUserMsg(self, userId, msg):
-        print('addUserMsg:', userId, msg)
-        print(self.chatAddUserMsg)
         if self.chatAddUserMsg is not None:
             self.chatAddUserMsg(userId, msg)
         return
@@ -172,7 +175,5 @@ def create_server(userId, callback_addUserMsg, callback_updateUsersList):
     user_server_port = user_server.port
     
     print('server created with port:', user_server_port)
-
     user_server.start()
-
     print("server stopped and thread end")

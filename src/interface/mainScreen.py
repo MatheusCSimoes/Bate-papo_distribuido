@@ -16,18 +16,21 @@ class MainScreen(tk.Frame):
 
         self._users_button = dict()
         self._users_chats = dict()
-        self._current_chat = None
+        self._current_chat_id = None
 
         self._menu, self._users_list = self._create_menu(self._main_container)
 
     def _switch_chat(self, userId):
-        """Destroys current frame and replaces it with a new one."""        
-        if self._current_chat is not None:
-            self._current_chat.pack_forget()
+        """Destroys current frame and replaces it with a new one."""    
+        if self._current_chat_id is not None:
+            oldUserId = self._current_chat_id
+            self._users_button[oldUserId].config(relief='raised')
+            self._users_chats[oldUserId].pack_forget()
 
-        self._current_chat = self._users_chats[userId]
-        self._current_chat.config(bg="#fff")
-        self._current_chat.pack(expand=1, fill="both")
+        self._current_chat_id = userId
+        self._users_button[userId].config(relief='sunken')
+        self._users_chats[userId].config(bg="#fff")
+        self._users_chats[userId].pack(expand=1, fill="both")
 
     def addUserChatToHistory(self, userId, msg):
         if userId in self._users_chats.keys():
@@ -68,27 +71,23 @@ class MainScreen(tk.Frame):
         users_container = tk.Frame(parent)
         users_container.pack(padx=3, pady=5)
 
-        print('INSIDE MainScreen - _create_users_list_container')
-        print(self._user.usersList.items())
-        print('END')
         for userId, userData in self._user.usersList.items():
             if userId == self._user.id:
                 continue
 
             user_chat_history = Chat(self._main_container, self._user, userId, userData.name)
-
-            if self._current_chat is None:
-                self._current_chat = user_chat_history
-                self._current_chat.config(bg="#fff")
-                self._current_chat.pack(expand=1, fill="both")
-
+            user_chat_history.config(bg="#fff")
             self._users_chats[userId] = user_chat_history
 
             user_chat_button = tk.Button(users_container, command=lambda id=userId: self._switch_chat(id))
             user_chat_button.config(text=userData.name, font=("Arial", "10"), width=20, height=2)
             user_chat_button.pack()
-
             self._users_button[userId] = user_chat_button
+
+            if self._current_chat_id is None:
+                self._current_chat_id = userId
+                user_chat_button.config(relief='sunken')
+                user_chat_history.pack(expand=1, fill="both")
 
         return users_container
 
