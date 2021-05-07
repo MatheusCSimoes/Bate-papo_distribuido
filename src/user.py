@@ -11,22 +11,16 @@ user_server_port = -1
 user_server = None
 
 class User:
-    def __init__(self, username="", uid=-1, activeUsers=dict(), status=0):
-        self.id = uid
+    def __init__(self, username=""):
+        self.id = -1
         self.username = username
-        self.usersList = activeUsers
-        self.status = status
+        self.usersList = dict()
+        self.status = 0
         self._server_thread = None
 
         self.chatAddUserMsg = None
         self.mainScreenAddUser = None
         self.mainScreenDisableUser = None
-
-    def __changeStatus(self, newStatus):
-        if newStatus == self.status:
-            return
-
-        #manda msg para o servidor
 
     def connect(self, username=None):
         #envia msg ao servidor para conectar
@@ -85,10 +79,8 @@ class User:
         for userId, userInfo in activeUsers.items():
             if userId in self.usersList:
                 self.usersList[userId].updateData(userInfo["name"], userInfo["address"], 1)
-                #self.usersList[userId].updateData(userInfo.name, userInfo.address, 1)
             else:
                 self.usersList[userId] = UserInfo(userId, userInfo["name"], userInfo["address"], 1)
-                #self.usersList[userId] = userInfo
 
         for userId in self.usersList.keys():
             if userId not in activeUsers:
@@ -142,7 +134,6 @@ class User:
         print(self.chatAddUserMsg)
         if self.chatAddUserMsg is not None:
             self.chatAddUserMsg(userId, msg)
-
         return
 
 class UserInfo:

@@ -13,10 +13,10 @@ class Chat(tk.Frame):
         self._chat_container = tk.Frame(self, bg="#fff")
         self._chat_container.pack(expand=1, fill='both')
 
-        self._chat_history_container = self.__create_chat_history(self._chat_container)
-        self._msg_box_container = self.__create_msg_box(self._chat_container)
+        self._chat_history_container = self._create_chat_history(self._chat_container)
+        self._msg_box_container = self._create_msg_box(self._chat_container)
 
-    def __create_chat_history(self, parent):
+    def _create_chat_history(self, parent):
         chat_history_container = tk.Frame(parent, bg='#fff')
         chat_history_container.pack(side="top", fill="x", pady=10, padx=15)
 
@@ -26,20 +26,20 @@ class Chat(tk.Frame):
             text_justify = 'e'
             if msg[0] == self._userId:
                 text_justify = 'w'
-                msg_label.config(bg='green')
+                msg_label.config(bg='#8ef589')
             
             msg_label.pack(pady=5, anchor=text_justify)
 
         return chat_history_container
 
-    def __create_msg_box(self, parent):
+    def _create_msg_box(self, parent):
         message_container = tk.Frame(parent)
         message_container.pack(side="bottom", fill="x", pady=10, padx=10)
 
         message_entry = tk.Entry(message_container)
         message_entry.config(font=("Arial", "8"))
         
-        send_button = tk.Button(message_container, command=lambda: self.__send_message(message_entry))
+        send_button = tk.Button(message_container, command=lambda: self._send_message(message_entry))
         send_button.config(text="Enviar", font=("Arial", "7"), width=5, height=2)
         send_button.pack(side="right")
 
@@ -47,7 +47,7 @@ class Chat(tk.Frame):
 
         return message_container
 
-    def __send_message(self, msg_entry):
+    def _send_message(self, msg_entry):
         #envia msg ao outro user
         msg = msg_entry.get()  
         msg_max_width = self._chat_history_container.winfo_width()
@@ -65,7 +65,7 @@ class Chat(tk.Frame):
         print("Chat -> add_user_msg")
         msg_max_width = self._chat_history_container.winfo_width()
 
-        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='green', wraplength=msg_max_width)
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='#8ef589', wraplength=msg_max_width)
         msg_label.pack(pady=5, anchor='w')
 
         self._chat_history.append((userId, msg))

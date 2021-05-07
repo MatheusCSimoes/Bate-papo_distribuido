@@ -60,7 +60,15 @@ class CentralServer(rpyc.Service):
 
         print(usersList)
 
-        #enviar msg aos users para atualizar lista
+        list_to_send = {k: v.to_dict() for k, v in usersList.items()}
+        list_to_send = json.dumps(list_to_send)
+        for uid, udata in usersList.items():
+            if uid == userId:
+                continue
+            user_server = rpyc.connect(udata.address[0], udata.address[1])
+            user_server.root.exposed_update_user_list(list_to_send)
+            user_server.close()
+            
         return True
 
     def exposed_get_users_list(self):

@@ -9,6 +9,7 @@ class MainScreen(tk.Frame):
         
         self._user = user
         self._user.mainScreenAddUser = self.create_new_user
+        self._user.chatAddUserMsg = self.addUserChatToHistory
 
         self._main_container = tk.Frame(self, bg="#fff")
         self._main_container.pack(expand=1, fill="both")
@@ -17,9 +18,9 @@ class MainScreen(tk.Frame):
         self._users_chats = dict()
         self._current_chat = None
 
-        self._menu, self._users_list = self.__create_menu(self._main_container)
+        self._menu, self._users_list = self._create_menu(self._main_container)
 
-    def __switch_chat(self, userId):
+    def _switch_chat(self, userId):
         """Destroys current frame and replaces it with a new one."""        
         if self._current_chat is not None:
             self._current_chat.pack_forget()
@@ -28,7 +29,9 @@ class MainScreen(tk.Frame):
         self._current_chat.config(bg="#fff")
         self._current_chat.pack(expand=1, fill="both")
 
-        self._user.chatAddUserMsg = self._current_chat.add_user_msg
+    def addUserChatToHistory(self, userId, msg):
+        if userId in self._users_chats.keys():
+            self._users_chats[userId].add_user_msg(userId, msg)
 
     def disconnectUser(self):
         #enviar msg ao servidor com status desativo
@@ -37,17 +40,17 @@ class MainScreen(tk.Frame):
         self._user = None
         self._master.switch_frame('InitialScreen')
 
-    def __create_menu(self, parent):
+    def _create_menu(self, parent):
         menu_container = tk.Frame(parent)
         menu_container.config(background="#b3b3b3")
         menu_container.pack(side="left", fill="y")
 
-        self.__create_status_menu(menu_container)
-        users_list_container = self.__create_users_list_container(menu_container)
+        self._create_status_menu(menu_container)
+        users_list_container = self._create_users_list_container(menu_container)
 
         return menu_container, users_list_container
 
-    def __create_status_menu(self, parent):
+    def _create_status_menu(self, parent):
         status_menu_container = tk.Frame(parent)
         status_menu_container.pack(side="top", fill="x")
 
@@ -61,14 +64,15 @@ class MainScreen(tk.Frame):
 
         return status_menu_container
 
-    def __create_users_list_container(self, parent):
+    def _create_users_list_container(self, parent):
         users_container = tk.Frame(parent)
         users_container.pack(padx=3, pady=5)
 
+        print('INSIDE MainScreen - _create_users_list_container')
+        print(self._user.usersList.items())
+        print('END')
         for userId, userData in self._user.usersList.items():
-            print(userId, self._user.id)
             if userId == self._user.id:
-                print('continue')
                 continue
 
             user_chat_history = Chat(self._main_container, self._user, userId, userData.name)
@@ -80,7 +84,7 @@ class MainScreen(tk.Frame):
 
             self._users_chats[userId] = user_chat_history
 
-            user_chat_button = tk.Button(users_container, command=lambda id=userId: self.__switch_chat(id))
+            user_chat_button = tk.Button(users_container, command=lambda id=userId: self._switch_chat(id))
             user_chat_button.config(text=userData.name, font=("Arial", "10"), width=20, height=2)
             user_chat_button.pack()
 
@@ -92,7 +96,7 @@ class MainScreen(tk.Frame):
         user_chat_history = Chat(self._main_container, self._user, userInfo.id, userInfo.name)
         self._users_chats[userInfo.id] = user_chat_history
 
-        user_chat_button = tk.Button(self._users_list, command=lambda id=userInfo.id: self.__switch_chat(id))
+        user_chat_button = tk.Button(self._users_list, command=lambda id=userInfo.id: self._switch_chat(id))
         user_chat_button.config(text=userInfo.name, font=("Arial", "10"), width=20, height=2)
         user_chat_button.pack()
 

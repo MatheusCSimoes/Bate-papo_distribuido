@@ -21,13 +21,13 @@ class InitialScreen(tk.Frame):
         self.button_container = tk.Frame(self.logIn_container)
         self.button_container.pack(side="bottom")
 
-        self.connect_button = tk.Button(self.button_container, command=lambda: self.__connectUser(master))
+        self.connect_button = tk.Button(self.button_container, command=lambda: self._connectUser(master))
         self.connect_button.config(text="Conectar", font=("Arial", "10"), width=10)
         self.connect_button.pack()
 
         self.user = None
 
-    def __connectUser(self, master):
+    def _connectUser(self, master):
         username = self.username_entry.get()
 
         #valida nome (apenas caracteres e numeros)
