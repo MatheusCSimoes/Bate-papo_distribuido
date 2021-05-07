@@ -5,14 +5,14 @@ from rpyc.utils.server import ThreadedServer
 from userServer import UserServer
 
 SERVER_ADDRESS = 'localhost'
-SERVER_PORT = 10001
+SERVER_PORT = 10000
 
 user_server_port = -1
 user_server = None
 
 class User:
-    def __init__(self, username="", id=-1, activeUsers=dict(), status=0):
-        self.id = id
+    def __init__(self, username="", uid=-1, activeUsers=dict(), status=0):
+        self.id = uid
         self.username = username
         self.usersList = activeUsers
         self.status = status
@@ -34,15 +34,15 @@ class User:
         self._server_thread = threading.Thread(target=create_server, args=(self.id, self.addUserMsg, self.updateUsersList))
         self._server_thread.start()
 
-        '''
         central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        self.id = central_server.root.update_user_list(self.username, self.port, 1)
+        self.id = central_server.root.exposed_connect_user(username, ('', user_server_port))
         central_server.close()
         
         if self.id == -1:
             print('ERRO!')
+            stop_server()
             return False
-        '''
+        
         if username is None:
             username = self.username
         else:
@@ -53,11 +53,10 @@ class User:
     def disconnect(self):
         if self._server_thread is None: #or self.id == -1:
             return True
-        '''
+        
         central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        central_server.root.update_user_list(self.username, self.port, 0)
+        central_server.root.exposed_disconnect_user(self.id)
         central_server.close()
-        '''
 
         stop_server()
 
@@ -69,20 +68,27 @@ class User:
         #pega a msg recebido do sevidor com o dicionario de usuarios ativos
         #se o usuario não está no dicionario do servidor, coloca seu status como inativo
         #se o usuario não está no dicionario de users, cria um novo user
+        print('INSIDE getActiveUsers')
 
-        activeUsers = dict({"1": '{ "name":"User1", "address":["",10001]}', "2": '{ "name":"User2", "address":["",10002]}'})
+        central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+        activeUsers = central_server.root.exposed_get_users_list()
+        central_server.close()
 
-        for userId, data in activeUsers.items():
-            userData = json.loads(data)
-            
+        print(activeUsers)
+        #activeUsers = dict({"1": '{ "name":"User1", "address":["",10001]}', "2": '{ "name":"User2", "address":["",10002]}'})
+
+        activeUsers = dict(json.loads(activeUsers))
+        for userId, userInfo in activeUsers.items():
             if userId in self.usersList:
-                self.usersList[userId].updateData(userData["name"], userData["address"], 1)
+                self.usersList[userId].updateData(userInfo["name"], userInfo["address"], 1)
+                #self.usersList[userId].updateData(userInfo.name, userInfo.address, 1)
             else:
-                self.usersList[userId] = UserInfo(userId, userData["name"], userData["address"], 1)
+                self.usersList[userId] = UserInfo(userId, userInfo["name"], userInfo["address"], 1)
+                #self.usersList[userId] = userInfo
 
         for userId in self.usersList.keys():
             if userId not in activeUsers:
-                self.usersList.updateStatus(0)
+                self.usersList[userId].updateStatus(0)
 
         return activeUsers
 
@@ -123,6 +129,8 @@ class UserInfo:
     def updateStatus(self, userStatus):
         self.status = userStatus
 
+    def to_dict(self):
+        return {"name": self.name, "address": self.address}
 
 def stop_server():
     if user_server is not None:

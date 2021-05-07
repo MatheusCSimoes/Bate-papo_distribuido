@@ -36,5 +36,4 @@ class InitialScreen(tk.Frame):
 
         if self.user.connect(username):
             self.user.getActiveUsers()
-
-        master.switch_frame('MainScreen', self.user)
+            master.switch_frame('MainScreen', self.user)
