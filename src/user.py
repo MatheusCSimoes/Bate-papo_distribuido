@@ -109,7 +109,6 @@ class User:
                 self.usersList[userId] = UserInfo(userId, userInfo["name"], userInfo["address"], 1)
                 #chama callback para adicionar botao
                 if self.mainScreenAddUser is not None:
-                    print('mainScreenAddUser')
                     self.mainScreenAddUser(self.usersList[userId])
 
         for userId in self.usersList.keys():

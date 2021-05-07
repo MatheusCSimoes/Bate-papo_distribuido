@@ -9,6 +9,7 @@ class MainScreen(tk.Frame):
         
         self._user = user
         self._user.mainScreenAddUser = self.create_new_user
+        self._user.mainScreenDisableUser = self.disableUserChat
         self._user.chatAddUserMsg = self.addUserChatToHistory
 
         self._main_container = tk.Frame(self, bg="#fff")
@@ -28,13 +29,14 @@ class MainScreen(tk.Frame):
             self._users_chats[oldUserId].pack_forget()
 
         self._current_chat_id = userId
-        self._users_button[userId].config(relief='sunken')
+        self._users_button[userId].config(relief='sunken', font=("Arial", "10"))
         self._users_chats[userId].config(bg="#fff")
         self._users_chats[userId].pack(expand=1, fill="both")
 
     def addUserChatToHistory(self, userId, msg):
-        if userId in self._users_chats.keys():
+        if userId in self._users_chats.keys() and userId in self._users_button.keys():
             self._users_chats[userId].add_user_msg(userId, msg)
+            self._users_button[userId].config(font=("Arial", "10", "bold"))
 
     def disconnectUser(self):
         #enviar msg ao servidor com status desativo
@@ -42,6 +44,11 @@ class MainScreen(tk.Frame):
         del self._user
         self._user = None
         self._master.switch_frame('InitialScreen')
+
+    def disableUserChat(self, userId):
+        if userId in self._users_chats.keys() and userId in self._users_button.keys():
+            self._users_button[userId].config(fg='red')
+            self._users_chats[userId].updateStatus(0)
 
     def _create_menu(self, parent):
         menu_container = tk.Frame(parent)

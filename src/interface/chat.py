@@ -3,7 +3,6 @@ import tkinter as tk
 class Chat(tk.Frame):
     def __init__(self, master, user, userId, userName, active=True, chatHistory=[]):
         tk.Frame.__init__(self, master)
-        self._userActive = active
         self._userId = userId
         self._userName = userName
         self._chat_history = chatHistory
@@ -14,7 +13,8 @@ class Chat(tk.Frame):
         self._chat_container.pack(expand=1, fill='both')
 
         self._chat_history_container = self._create_chat_history(self._chat_container)
-        self._msg_box_container = self._create_msg_box(self._chat_container)
+        self._msg_box_container, self._send_button = self._create_msg_box(self._chat_container)
+        
 
     def _create_chat_history(self, parent):
         chat_history_container = tk.Frame(parent, bg='#fff')
@@ -45,7 +45,7 @@ class Chat(tk.Frame):
 
         message_entry.pack(side="right", padx=10, expand=1, fill="x")
 
-        return message_container
+        return message_container, send_button
 
     def _send_message(self, msg_entry):
         #envia msg ao outro user
@@ -53,7 +53,7 @@ class Chat(tk.Frame):
         msg_max_width = self._chat_history_container.winfo_width()
 
         if self._user.sendMsgToUser(self._userId, msg):
-            msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), wraplength=msg_max_width)
+            msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), wraplength=msg_max_width, justify='left')
             msg_label.pack(pady=5, anchor='e')
             self._chat_history.append((self._userId, msg))
         
@@ -62,12 +62,17 @@ class Chat(tk.Frame):
             print('erro ao enviar msg')
 
     def add_user_msg(self, userId, msg):
-        print("Chat -> add_user_msg")
         msg_max_width = self._chat_history_container.winfo_width()
+        if msg_max_width < 10:
+            msg_max_width = 500
 
-        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='#8ef589', wraplength=msg_max_width)
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='#8ef589', wraplength=msg_max_width, justify='left')
         msg_label.pack(pady=5, anchor='w')
 
         self._chat_history.append((userId, msg))
 
-        print(userId, msg)
+    def updateStatus(self, active):
+        if active == 0:
+            self._send_button.config(state='disabled')
+        else:
+            self._send_button.config(state='normal')
