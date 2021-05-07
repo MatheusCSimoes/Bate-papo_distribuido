@@ -1,5 +1,6 @@
 import tkinter as tk
 from interface.chat import Chat
+from user import UserInfo
 
 class MainScreen(tk.Frame):
     def __init__(self, master=None, user=None):
@@ -7,6 +8,7 @@ class MainScreen(tk.Frame):
         self._master = master
         
         self._user = user
+        self._user.mainScreenAddUser = self.create_new_user
 
         self._main_container = tk.Frame(self, bg="#fff")
         self._main_container.pack(expand=1, fill="both")
@@ -15,7 +17,7 @@ class MainScreen(tk.Frame):
         self._users_chats = dict()
         self._current_chat = None
 
-        self._menu = self.__create_menu(self._main_container)
+        self._menu, self._users_list = self.__create_menu(self._main_container)
 
     def __switch_chat(self, userId):
         """Destroys current frame and replaces it with a new one."""        
@@ -28,9 +30,11 @@ class MainScreen(tk.Frame):
 
         self._user.chatAddUserMsg = self._current_chat.add_user_msg
 
-    def __disconnectUser(self):
+    def disconnectUser(self):
         #enviar msg ao servidor com status desativo
         self._user.disconnect()
+        del self._user
+        self._user = None
         self._master.switch_frame('InitialScreen')
 
     def __create_menu(self, parent):
@@ -39,9 +43,9 @@ class MainScreen(tk.Frame):
         menu_container.pack(side="left", fill="y")
 
         self.__create_status_menu(menu_container)
-        self.__create_users_list_container(menu_container)
+        users_list_container = self.__create_users_list_container(menu_container)
 
-        return menu_container
+        return menu_container, users_list_container
 
     def __create_status_menu(self, parent):
         status_menu_container = tk.Frame(parent)
@@ -51,7 +55,7 @@ class MainScreen(tk.Frame):
         disconnect_container.pack(padx=10, pady=10, anchor='center')
 
         disconnect = tk.Button(disconnect_container)
-        disconnect["command"] = self.__disconnectUser
+        disconnect["command"] = self.disconnectUser
         disconnect.config(text="Desconectar", font=("Arial", "10"), width=10)
         disconnect.pack()
 
@@ -62,7 +66,12 @@ class MainScreen(tk.Frame):
         users_container.pack(padx=3, pady=5)
 
         for userId, userData in self._user.usersList.items():
-            user_chat_history = Chat(self._main_container, self._user, userId, userData.name, chatHistory=[('1', 'testando'), ('2', 'hehe')])
+            print(userId, self._user.id)
+            if userId == self._user.id:
+                print('continue')
+                continue
+
+            user_chat_history = Chat(self._main_container, self._user, userId, userData.name)
 
             if self._current_chat is None:
                 self._current_chat = user_chat_history
@@ -79,12 +88,13 @@ class MainScreen(tk.Frame):
 
         return users_container
 
-    def create_new_user(self, parent, username, status):
-        user_container = tk.Frame(parent)
-        user_container.pack()
+    def create_new_user(self, userInfo):
+        user_chat_history = Chat(self._main_container, self._user, userInfo.id, userInfo.name)
+        self._users_chats[userInfo.id] = user_chat_history
 
-        user_name = tk.Label(user_container, text=username)
-        user_name["font"] = ("Arial", "10")
-        user_name.pack()
+        user_chat_button = tk.Button(self._users_list, command=lambda id=userInfo.id: self.__switch_chat(id))
+        user_chat_button.config(text=userInfo.name, font=("Arial", "10"), width=20, height=2)
+        user_chat_button.pack()
 
-        return user_container    
+        self._users_button[userInfo.id] = user_chat_button
+        return

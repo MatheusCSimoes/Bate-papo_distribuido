@@ -17,4 +17,5 @@ class UserServer(rpyc.Service):
         return self.callback_addUserMsg(clientUserId, msg)
 
     def exposed_update_user_list(self, userList):
+        print('UserServer - userList:', userList)
         return self.callback_updateUsersList(userList)

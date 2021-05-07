@@ -33,18 +33,33 @@ class CentralServer(rpyc.Service):
         for uid, uInfo in usersList.items():
             print(uid, ':', uInfo.id, ',', uInfo.name, ',', uInfo.address)
 
-        return userId
+        list_to_send = {k: v.to_dict() for k, v in usersList.items()}
+        list_to_send = json.dumps(list_to_send)
+        for uid, udata in usersList.items():
+            if uid == userId:
+                continue
+            user_server = rpyc.connect(udata.address[0], udata.address[1])
+            user_server.root.exposed_update_user_list(list_to_send)
+            user_server.close()
+
+        return str(userId)
 
     def exposed_disconnect_user(self, userId):
         global usersList
 
-        print('INSIDE exposed_disconnect_user')
+        userId = int(userId)
+
+        print('exposed_disconnect_user', userId)
+        print(type(userId))
         if userId not in usersList.keys():
             return False
         
         lock.acquire()
         del usersList[userId]
         lock.release()
+
+        print(usersList)
+
         #enviar msg aos users para atualizar lista
         return True
 

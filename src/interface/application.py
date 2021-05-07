@@ -11,6 +11,7 @@ class Application(tk.Tk):
         self.resizable(False, False)
 
         self._frame = None
+        self._current_frame_class = 'InitialScreen'
         self.switch_frame('InitialScreen')
         #self.switch_frame('MainScreen', 'teste')
 
@@ -19,8 +20,10 @@ class Application(tk.Tk):
         new_frame = None
 
         if frame_class == 'InitialScreen' or len(args) == 0:
+            self._current_frame_class = 'InitialScreen'
             new_frame = InitialScreen(self)
         elif frame_class == 'MainScreen' and len(args) > 0:
+            self._current_frame_class = 'MainScreen'
             new_frame = MainScreen(self, args[0])
 
         if self._frame is not None:
@@ -29,3 +32,8 @@ class Application(tk.Tk):
         self._frame = new_frame
         self._frame.config(bg="#fff")
         self._frame.pack(expand=1, fill="both")
+
+    def close_window(self):
+        print(self._current_frame_class)
+        if self._current_frame_class == 'MainScreen':
+            self._frame.disconnectUser()

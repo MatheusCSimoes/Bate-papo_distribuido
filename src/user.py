@@ -19,6 +19,8 @@ class User:
         self._server_thread = None
 
         self.chatAddUserMsg = None
+        self.mainScreenAddUser = None
+        self.mainScreenDisableUser = None
 
     def __changeStatus(self, newStatus):
         if newStatus == self.status:
@@ -31,7 +33,7 @@ class User:
         #caso o username já exista, vai retornar erro
         #se nao user conectado e atualiza os dados
 
-        self._server_thread = threading.Thread(target=create_server, args=(self.id, self.addUserMsg, self.updateUsersList))
+        self._server_thread = threading.Thread(target=create_server, args=(self.id, self.addUserMsg, self.updateActiveUsers))
         self._server_thread.start()
 
         central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
@@ -55,13 +57,14 @@ class User:
             return True
         
         central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
-        central_server.root.exposed_disconnect_user(self.id)
+        disconnected = central_server.root.exposed_disconnect_user(self.id)
         central_server.close()
 
+        if not disconnected:
+            return False
+
         stop_server()
-
         print('thread is alive: ', self._server_thread.is_alive())
-
         return True #retorna True se conectado e False se não conectou
 
     def getActiveUsers(self):
@@ -74,7 +77,8 @@ class User:
         activeUsers = central_server.root.exposed_get_users_list()
         central_server.close()
 
-        print(activeUsers)
+        print('self.usersList:', self.usersList)
+        print('activeUsers:', activeUsers)
         #activeUsers = dict({"1": '{ "name":"User1", "address":["",10001]}', "2": '{ "name":"User2", "address":["",10002]}'})
 
         activeUsers = dict(json.loads(activeUsers))
@@ -92,6 +96,37 @@ class User:
 
         return activeUsers
 
+    def updateActiveUsers(self, activeUsers=None):
+        print('INSIDE updateActiveUsers')
+
+        if activeUsers is None:
+            print('activeUsers is None')
+            central_server = rpyc.connect(SERVER_ADDRESS, SERVER_PORT)
+            activeUsers = central_server.root.exposed_get_users_list()
+            central_server.close()
+
+        print(activeUsers)
+
+        activeUsers = dict(json.loads(activeUsers))
+        for userId, userInfo in activeUsers.items():
+            if userId in self.usersList:
+                self.usersList[userId].updateData(userInfo["name"], userInfo["address"], 1)
+            else:
+                self.usersList[userId] = UserInfo(userId, userInfo["name"], userInfo["address"], 1)
+                #chama callback para adicionar botao
+                if self.mainScreenAddUser is not None:
+                    print('mainScreenAddUser')
+                    self.mainScreenAddUser(self.usersList[userId])
+
+        for userId in self.usersList.keys():
+            if userId not in activeUsers:
+                self.usersList[userId].updateStatus(0)
+                #chama callback para desativar chat
+                if self.mainScreenDisableUser is not None:
+                    self.mainScreenDisableUser(userId)
+
+        return activeUsers
+
     def sendMsgToUser(self, userId, msg):
         userAddress = self.usersList[userId].address
         
@@ -101,10 +136,6 @@ class User:
         user_server_conn.close()
         
         return True
-
-    def updateUsersList(self, userList):
-        print(userList)
-        return
 
     def addUserMsg(self, userId, msg):
         print('addUserMsg:', userId, msg)
@@ -133,8 +164,14 @@ class UserInfo:
         return {"name": self.name, "address": self.address}
 
 def stop_server():
+    global user_server
+    global user_server_port
+
     if user_server is not None:
         user_server.close()
+
+    user_server = None
+    user_server_port = -1
 
 def create_server(userId, callback_addUserMsg, callback_updateUsersList):
     global user_server 
@@ -147,4 +184,4 @@ def create_server(userId, callback_addUserMsg, callback_updateUsersList):
 
     user_server.start()
 
-    print("end thread")
+    print("server stopped and thread end")
