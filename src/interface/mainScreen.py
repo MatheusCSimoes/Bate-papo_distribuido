@@ -36,7 +36,7 @@ class MainScreen(tk.Frame):
     def addUserChatToHistory(self, userId, msg):
         if userId in self._users_chats.keys() and userId in self._users_button.keys():
             self._users_chats[userId].add_user_msg(userId, msg)
-            self._users_button[userId].config(font=("Arial", "10", "bold"))
+            self._users_button[userId].config(font=("Arial", "10", "italic"))
 
     def disconnectUser(self):
         #enviar msg ao servidor com status desativo
@@ -47,8 +47,16 @@ class MainScreen(tk.Frame):
 
     def disableUserChat(self, userId):
         if userId in self._users_chats.keys() and userId in self._users_button.keys():
-            self._users_button[userId].config(fg='red')
-            self._users_chats[userId].updateStatus(0)
+            if self._users_chats[userId].hasMsgsInHistory():
+                self._users_button[userId].config(fg='red')
+                self._users_chats[userId].updateStatus(0)
+            else:
+                if self._current_chat_id == userId:
+                    self._users_button[userId].config(relief='raised')
+                self._users_button[userId].pack_forget()
+                del self._users_button[userId]
+
+            self._users_chats[userId].add_msg_disconnected(userId)
 
     def _create_menu(self, parent):
         menu_container = tk.Frame(parent)
@@ -87,7 +95,7 @@ class MainScreen(tk.Frame):
             self._users_chats[userId] = user_chat_history
 
             user_chat_button = tk.Button(users_container, command=lambda id=userId: self._switch_chat(id))
-            user_chat_button.config(text=userData.name, font=("Arial", "10"), width=20, height=2)
+            user_chat_button.config(text=userData.name+ ' (' + str(userData.address[1]) + ')', font=("Arial", "10"), width=20, height=2)
             user_chat_button.pack()
             self._users_button[userId] = user_chat_button
 
@@ -103,7 +111,7 @@ class MainScreen(tk.Frame):
         self._users_chats[userInfo.id] = user_chat_history
 
         user_chat_button = tk.Button(self._users_list, command=lambda id=userInfo.id: self._switch_chat(id))
-        user_chat_button.config(text=userInfo.name, font=("Arial", "10"), width=20, height=2)
+        user_chat_button.config(text=userInfo.name + ' (' + str(userInfo.address[1]) + ')', font=("Arial", "10"), width=20, height=2)
         user_chat_button.pack()
 
         self._users_button[userInfo.id] = user_chat_button

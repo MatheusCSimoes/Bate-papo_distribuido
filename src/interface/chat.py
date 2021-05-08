@@ -70,6 +70,19 @@ class Chat(tk.Frame):
 
         self._chat_history.append((userId, msg))
 
+    def add_msg_disconnected(self, userId):
+        msg_max_width = self._chat_history_container.winfo_width()
+        if msg_max_width < 10:
+            msg_max_width = 500
+
+        msg = 'usuario desconectado'
+        msg_label = tk.Label(self._chat_history_container, text=msg, font=("Arial", "10"), bg='#8ef589', fg='red', wraplength=msg_max_width, justify='left')
+        msg_label.pack(pady=5, anchor='w')
+        self._chat_history.append((userId, msg))
+
+    def hasMsgsInHistory(self):
+        return len(self._chat_history) > 0
+
     def updateStatus(self, active):
         if active == 0:
             self._send_button.config(state='disabled')

@@ -35,6 +35,10 @@ class InitialScreen(tk.Frame):
             messagebox.showinfo(title='Ajuste nome', message='O nome deve ter pelo menos 3 caracteres.')
             return
 
+        if len(username) > 15:
+            messagebox.showinfo(title='Ajuste nome', message='O nome deve ter no máximo 15 caracteres.')
+            return
+
         self.user = User(username)
 
         if self.user.connect(username):

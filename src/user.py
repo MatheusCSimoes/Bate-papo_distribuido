@@ -112,7 +112,7 @@ class User:
                     self.mainScreenAddUser(self.usersList[userId])
 
         for userId in self.usersList.keys():
-            if userId not in activeUsers:
+            if userId not in activeUsers and self.usersList[userId].status == 1:
                 self.usersList[userId].updateStatus(0)
                 #chama callback para desativar chat
                 if self.mainScreenDisableUser is not None:
