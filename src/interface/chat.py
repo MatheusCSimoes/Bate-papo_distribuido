@@ -1,11 +1,11 @@
 import tkinter as tk
 
 class Chat(tk.Frame):
-    def __init__(self, master, user, userId, userName, active=True, chatHistory=[]):
+    def __init__(self, master, user, userId, userName):
         tk.Frame.__init__(self, master)
         self._userId = userId
         self._userName = userName
-        self._chat_history = chatHistory
+        self._chat_history = []
         
         self._user = user
 
@@ -14,7 +14,6 @@ class Chat(tk.Frame):
 
         self._chat_history_container = self._create_chat_history(self._chat_container)
         self._msg_box_container, self._send_button = self._create_msg_box(self._chat_container)
-        
 
     def _create_chat_history(self, parent):
         chat_history_container = tk.Frame(parent, bg='#fff')
