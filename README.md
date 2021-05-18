@@ -7,3 +7,8 @@
  
     - Matheus Simões 
     - Daniel Jimenez
+
+Para iniciar o servidor: mainServer.py \
+Para iniciar usuários: mainUser.py 
+
+Na tela inicial do usuário, ao clicar em conectar, é chamado o método "connect" da classe User em user.py. Nesse método é iniciado uma nova thread onde ficará o servidor do lado do usuário. Além disso, é enviado uma mensagem ao servidor central com o endereço do usuário.
